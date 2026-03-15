@@ -122,7 +122,7 @@
        helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner --force-update
        helm repo update
        helm install --version {{ nfs_provisioner }} nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner --set nfs.server={{ ansible_default_ipv4.address }} --set nfs.path=/data/nfs --set storageClass.archiveOnDelete=false --create-namespace --namespace nfs-client --force
-       sleep 10
+       kubectl wait pods --all -n nfs-client --for=condition=Ready --timeout=120s
        kubectl patch storageclass nfs-client -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
      retries: 5
      delay: 5
@@ -156,7 +156,10 @@
      register: metallb
 
    - name: Install MetalLB
-     shell: "helm repo add metallb https://metallb.github.io/metallb; helm install my-metallb metallb/metallb --version {{ metallb_version }} --create-namespace --namespace metallb-system --force; sleep 180"
+     shell: |
+      helm repo add metallb https://metallb.github.io/metallb
+      helm install my-metallb metallb/metallb --version {{ metallb_version }} --create-namespace --namespace metallb-system --force
+      kubectl wait pods --all -n metallb-system --for=condition=Ready --timeout=300s
      when: loadbalancer == true and metallb.stdout != '1'
      retries: 5
      delay: 5
@@ -423,7 +426,7 @@
        helm install istio-base istio/base -n istio-system --wait --set defaultRevision=default --create-namespace --version ${ISTIO_VERSION}
        helm install istiod istio/istiod -n istio-system --wait --version ${ISTIO_VERSION} --set proxy.autoInject=disabled --set-string pilot.podAnnotations."cluster-autoscaler\.kubernetes\.io/safe-to-evict"=true
        helm install istio-ingressgateway istio/gateway -n istio-system --version ${ISTIO_VERSION} --set-string podAnnotations."cluster-autoscaler\.kubernetes\.io/safe-to-evict"=true
-       sleep 20
+       kubectl wait pods --all -n istio-system --for=condition=Ready --timeout=180s
        helm repo add jetstack https://charts.jetstack.io --force-update
        helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace  --version ${CERT_MANAGER_VERSION}  --set crds.enabled=true
        helm install knative-operator --namespace knative-serving --create-namespace --wait https://github.com/knative/operator/releases/download/knative-${KNATIVE_OPERATOR_VERSION}/knative-operator-${KNATIVE_OPERATOR_VERSION}.tgz
@@ -456,7 +459,8 @@
    - name: Patch Knative Serving CRD
      when: kserve == true
      shell: |
-       sleep 15; kubectl patch configmap config-features -n knative-serving --type merge -p '{"data":{"kubernetes.podspec-nodeselector":"enabled"}}'
+       kubectl wait pods --all -n knative-serving --for=condition=Ready --timeout=180s
+      kubectl patch configmap config-features -n knative-serving --type merge -p '{"data":{"kubernetes.podspec-nodeselector":"enabled"}}'
        kubectl patch configmap config-features -n knative-serving --type merge -p '{"data":{"kubernetes.podspec-persistent-volume-claim":"enabled","kubernetes.podspec-persistent-volume-write":"enabled"}}'
      retries: 5
      delay: 5
