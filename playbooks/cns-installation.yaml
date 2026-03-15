@@ -69,7 +69,7 @@
       copy:
         src: "{{lookup('pipe', 'pwd')}}/files/conf_compu_snp_install.sh"
         dest: "{{ ansible_user_dir }}"
-        mode: 0777
+        mode: '0755'
 
     - name: Run conf_compu_snp_install script, please wait
       become: true
@@ -105,7 +105,7 @@
     - name: Verify NVIDIA device has GB200/GB300
       fail:
         msg: "GB200 or GB300 device id not found in {{ nvidia_id.stdout }}"
-      when: nvidia_id.stdout != '2941' or nvidia_id.stdout != '31c2'
+      when: nvidia_id.stdout != '2941' and nvidia_id.stdout != '31c2'
       ignore_errors: true
       failed_when: false
 
@@ -237,7 +237,7 @@
       get_url:
         url: https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py
         dest: /tmp/speedtest-cli
-        mode: '0777'
+        mode: '0755'
 
     - name: Get jq pacakge
       become: true
@@ -245,7 +245,7 @@
       get_url:
         url: https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-amd64
         dest: /usr/local/bin/jq
-        mode: '0777'
+        mode: '0755'
 
     - name: Get jq pacakge
       become: true
@@ -253,7 +253,7 @@
       get_url:
         url: https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-arm64
         dest: /usr/local/bin/jq
-        mode: '0777'
+        mode: '0755'
 
     - name: Check Internet Speed
       ignore_errors: true
@@ -263,7 +263,7 @@
       async: 30
 
     - name: Report Valid Internet Speed
-      shell: echo {{ speed.stdout_lines[1] }} | awk '{print $3}'
+      shell: echo {{ speed.stdout_lines[1] | default('') }} | awk '{print $3}'
       register: speedtest
       ignore_errors: true
       failed_when: "'Kbit/s' in speedtest.stdout"
@@ -416,18 +416,16 @@
         release: "{{ release.stdout }}"
 
     - name: Waiting for Cluster to up and running
-      args:
-        executable: /bin/bash
-      shell: |
-        sleep 240
-        state=$(kubectl get pods -n nvidia-gpu-operator | egrep -v 'Running|Completed|NAME' | wc -l)
-        while [ $state != 0 ]
-          do
-            sleep 10
-            state=$(kubectl get pods -n nvidia-gpu-operator | egrep -v 'Running|Completed|NAME' | wc -l)
-          done
+      shell: >
+        kubectl wait pods --all -n nvidia-gpu-operator
+        --for=condition=Ready --timeout=600s
       register: status
+      retries: 3
+      delay: 10
+      until: status is succeeded
+      failed_when: false
       when: "cns_version > 4.1 and cns_validation == true and release != 'tegra'"
 
 - when: "cns_version > 4.1 and cns_validation == true and release != 'tegra'"
   import_playbook: cns-validation.yaml
+
