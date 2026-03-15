@@ -42,11 +42,11 @@ For more information, Refer [Cloud Native Stack Releases](https://github.com/NVI
 | :-----:                   | :-----: | :-----: | :-----: | :-----: |
 | Platforms                 | <ul><li>NVIDIA Certified Server (x86 & arm64)</li><li>DGX Server</li></ul> | <ul><li>NVIDIA Certified Server (x86 & arm64)</li><li>DGX Server</li></ul> | <ul><li>NVIDIA Certified Server (x86 & arm64)</li><li>DGX Server</li></ul> | <ul><li>NVIDIA Certified Server (x86 & arm64)</li><li>DGX Server</li></ul> |
 | Supported OS              | <ul><li>Ubuntu 24.04 LTS</li></ul> | <ul><li>Ubuntu 24.04 LTS</li></ul> | <ul><li>Ubuntu 24.04 LTS</li></ul> | <ul><li>Ubuntu 22.04 LTS</li></ul> |
-| Containerd                | 2.2.0   | 2.2.2   | 2.2.2   | 2.2.2 |
+| Containerd                | 2.2.2   | 2.2.2   | 2.2.2   | 2.2.2 |
 | NVIDIA Container Toolkit  | 1.18.1  | 1.18.1  | 1.18.1  | 1.18.1 |
 | CRI-O                     | 1.35.2  | 1.34.6  | 1.33.10 | 1.32.13 |
 | Kubernetes                | 1.35.2  | 1.34.5  | 1.33.9  | 1.32.13 |
-| CNI (Calico)              | 3.31.3  | 3.31.4  | 3.31.4  | 3.31.4 |
+| CNI (Calico)              | 3.31.4  | 3.31.4  | 3.31.4  | 3.31.4 |
 | NVIDIA GPU Operator       | 25.10.1 | 25.10.1 | 25.10.1 | 25.10.1 |
 | NVIDIA Network Operator   | N/A     | N/A     | 25.7.0  | 25.7.0 |
 | NVIDIA NIM Operator       | 3.0.2   | 3.0.2   | 3.0.2   | 3.0.2 |
