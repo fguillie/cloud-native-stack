@@ -1,6 +1,12 @@
 #!/bin/bash
 set -a
-if [ -z $1 ]; then
+
+# Compare version numbers correctly (avoids lexicographic pitfalls like "3.10" < "3.9")
+version_gte() {
+  printf '%s\n%s' "$2" "$1" | sort -C -V
+}
+
+if [ -z "$1" ]; then
 	echo -e "Usage: \n bash setup.sh [OPTIONS]\n \n Available Options: \n      -h, --help, usage    : Show this help message and exit\n      install              : Install NVIDIA Cloud Native Stack\n                             Sub Options:\n                               install gke   : Install NVIDIA Cloud Native Stack on Google GKE\n                               install eks   : Install NVIDIA Cloud Native Stack on Amazon EKS\n                               install aks   : Install NVIDIA Cloud Native Stack on Azure AKS\n                               install gke   : Install NVIDIA Cloud Native Stack with Confidential Computing\n \n      validate             : Validate NVIDIA Cloud Native Stack\n      upgrade              : Upgrade NVIDIA Cloud Native Stack\n      uninstall            : Uninstall NVIDIA Cloud Native Stack\n                             Sub Options:\n                               uninstall gke   : Uninstall NVIDIA Cloud Native Stack on Google GKE\n                               uninstall eks   : Uninstall NVIDIA Cloud Native Stack on Amazon EKS\n                               uninstall aks   : Uninstall NVIDIA Cloud Native Stack on Azure AKS\n"
 	echo
 	exit 1
@@ -12,7 +18,7 @@ fi
 
 sudo ls > /dev/null
 
-version=$(cat cns_version.yaml | awk -F':' '{print $2}' | head -n1 | tr -d ' ' | tr -d '\n\r')
+version=$(awk -F':' '{print $2; exit}' cns_version.yaml | tr -d ' \n\r')
 cp cns_values_$version.yaml cns_values.yaml
 #sed -i "1s/^/cns_version: $version\n/" cns_values.yaml
 
@@ -30,7 +36,7 @@ ansible_install() {
   else
     pversion=$(python3 --version | awk '{print $2}' | awk -F'.' '{print $1"."$2}')
 	p2version=$(python --version 2>&1 | awk '{print $2}' | awk -F'.' '{print $1"."$2}')
-    if [[ $pversion < 3.8 || $pversion == 3.8 || $p2version == 3.8 || $p2version < 3.8 ]]; then
+    if ! version_gte "$pversion" "3.9" || ! version_gte "$p2version" "3.9"; then
         if [[ $os == "ubuntu" ]]; then
 		os_version=$(cat /etc/os-release  | grep -iw 'VERSION_ID' | awk -F'=' '{print $2}')
             if [[ $os_version == '"20.04"' ]]; then
@@ -60,9 +66,9 @@ fi
    else
          pversion=$(python3 --version | awk '{print $2}' | awk -F'.' '{print $1"."$2}')
          p2version=$(python --version 2>&1 | awk '{print $2}' | awk -F'.' '{print $1"."$2}')
-         if [[ $pversion < 3.10 || $pversion == 3.10 || $p2version == 3.10 || $p2version < 3.10  ]]; then
+         if ! version_gte "$pversion" "3.11" || ! version_gte "$p2version" "3.11"; then
                  python3 -m pip install ansible==8.7.0 2>&1 >/dev/null
-         elif [[ $pversion > 3.10 ]]; then
+         elif version_gte "$pversion" "3.11"; then
                  python3 -m pip install ansible==11.4.0 --break-system-packages 2>&1 >/dev/null
         fi
   fi
@@ -329,7 +335,7 @@ if [ $1 == "install" ]; then
                 ansible-playbook -i hosts cns-installation.yaml
         elif [[ $2 == 'launchpad' ]]; then
                 ansible-playbook -i hosts cns-installation.yaml
-      	elif [ -z $2 ]; then
+      	elif [ -z "$2" ]; then
 		echo "Installing NVIDIA Cloud Native Stack Version $version"
 		id=$(sudo dmidecode --string system-uuid | awk -F'-' '{print $1}' | cut -c -3)
 		manufacturer=$(sudo dmidecode -s system-manufacturer | egrep -i "microsoft corporation|Google")
@@ -371,7 +377,7 @@ elif [ $1 == "uninstall" ]; then
                 terraform destroy --auto-approve
                 cd ../../
                 rm -rf terraform_1.5.3_linux_* jq-linux64 kubectl
-	elif [ -z $2 ]; then
+	elif [ -z "$2" ]; then
 		echo
 		echo "Unstalling NVIDIA Cloud Native Stack"
 		id=$(sudo dmidecode --string system-uuid | awk -F'-' '{print $1}' | cut -c -3)
