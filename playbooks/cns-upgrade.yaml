@@ -57,6 +57,13 @@
          cns_version: 16.1
 
    - name: Create Cloud Native Stack cns_version.yaml
+     when: "k8sversion.stdout == 'v1.34.2'"
+     copy:
+       dest: "/tmp/cns_version.yaml"
+       content: |
+         cns_version: 17.1
+
+   - name: Create Cloud Native Stack cns_version.yaml
      when: "k8sversion.stdout == 'v1.33.6'"
      copy:
        dest: "/tmp/cns_version.yaml"
@@ -118,6 +125,11 @@
    - name: Update Kubeadm configmap
      shell: "kubectl -n kube-system get cm kubeadm-config -o yaml | sed 's/^ *kubernetesVersion: .*/  kubernetesVersion: v{{ k8s_version }}/' | kubectl apply -f -"
      when: "'running' in k8sup.stdout"
+
+   - name: Upgrade the Cloud Native Stack from 17.0 to 17.1
+     shell: kubeadm upgrade apply v1.34.6 --force --ignore-preflight-errors=CreateJob
+     when: "'running' in k8sup.stdout and k8sversion.stdout == 'v1.34.2'"
+     become: true
 
    - name: Upgrade the Cloud Native Stack from 16.1 to 16.2
      shell: kubeadm upgrade apply v1.33.10 --force --ignore-preflight-errors=CreateJob
