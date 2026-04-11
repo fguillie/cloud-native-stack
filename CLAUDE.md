@@ -132,13 +132,13 @@ Jinja2 templates for kubeadm cluster initialization:
 
 ## Active CNS Versions
 
-CNS maintains 3 versions concurrently. As of January 2026:
+CNS maintains 3 versions concurrently. As of April 2026:
 
 | Version | Status | Kubernetes | GPU Operator | Driver |
 |---|---|---|---|---|
-| 17.0 | Latest GA | 1.33.6 | 25.10.1 | 580.105.08 |
-| 16.1 | Maintenance | 1.33.6 | 25.10.1 | 580.105.08 |
-| 15.2 | Maintenance | 1.32.6 | 25.7.0 | 570.148.08 |
+| 17.1 | Latest GA | 1.34.6 | 26.3.0 | 580.126.20 |
+| 17.0 | Maintenance | 1.34.2 | 25.10.1 | 580.105.08 |
+| 16.2 | Maintenance | 1.33.10 | 26.3.0 | 580.126.20 |
 
 Older versions are preserved in `playbooks/older_versions/`.
 
@@ -153,6 +153,8 @@ Older versions are preserved in `playbooks/older_versions/`.
 | v1.32.2 | CNS 15.1 |
 | v1.32.6 | CNS 15.2 |
 | v1.33.2 | CNS 16.1 |
+| v1.33.6 | CNS 16.2 |
+| v1.34.2 | CNS 17.1 |
 
 ## Contribution Requirements
 
