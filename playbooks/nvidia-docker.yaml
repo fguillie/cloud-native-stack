@@ -150,13 +150,13 @@
           [Unit]
           Description=Docker Application Container Engine
           Documentation=https://docs.docker.com
-          After=network-online.target docker.socket firewalld.service containerd.service
+          After=network-online.target docker.socket firewalld.service
           Wants=network-online.target
-          Requires=docker.socket containerd.service
+          Requires=docker.socket
 
           [Service]
           Type=notify
-          ExecStart=/usr/bin/dockerd -H unix:// --containerd=/run/containerd/containerd.sock
+          ExecStart=/usr/bin/dockerd -H unix://
           ExecReload=/bin/kill -s HUP $MAINPID
           TimeoutSec=0
           RestartSec=2
